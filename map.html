@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <style type="text/css">
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      font-family: "微软雅黑";
+    }
+
+
+    #allmap {
+      height: 100%;
+      width: 100%;
+    }
+
+    #r-result {
+      width: 100%;
+    }
+
+    #time {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      /* background: white; */
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      z-index: 999;
+    }
+  </style>
+  <script type="text/javascript" src="//api.map.baidu.com/api?v=2.0&ak=owXGwwbCTDhYERM78dtQ41w0"></script>
+  <script src="./point.js"></script>
+  <title>添加/删除覆盖物</title>
+</head>
+
+<body>
+  <div id='time'></div>
+  <div id="allmap"></div>
+  <!-- <div id="r-result">
+    <input type="button" onclick="add_overlay();" value="添加覆盖物" />
+    <input type="button" onclick="remove_overlay();" value="删除覆盖物" />
+  </div> -->
+</body>
+
+</html>
+<script type="text/javascript">
+  // 百度地图API功能
+  var map = new BMap.Map("allmap");
+  var point = new BMap.Point(113.129672, 41.00009);
+  map.centerAndZoom(point, 13);
+  var mapStyle = {
+    style: "dark"  //设置地图风格为高端黑
+  }
+  map.setMapStyle(mapStyle);
+  map.enableScrollWheelZoom(true);
+  // 覆盖区域图层测试
+  map.addTileLayer(new BMap.PanoramaCoverageLayer());
+
+  console.log(point)
+
+  // var stCtrl = new BMap.PanoramaControl(); //构造全景控件
+  // stCtrl.setOffset(new BMap.Size(20, 20));
+  // map.addControl(stCtrl);//添加全景控件
+
+  var bounds = map.getBounds();
+  var sw = bounds.getSouthWest();
+  var ne = bounds.getNorthEast();
+  var lngSpan = Math.abs(sw.lng - ne.lng);
+  var latSpan = Math.abs(ne.lat - sw.lat);
+  var lastData = [
+    { "longitude": 113.115471, "latitude": 40.976599 },
+    { "longitude": 113.13496, "latitude": 41.044658 },
+    { "longitude": 113.14904, "latitude": 40.985743 },
+    { "longitude": 113.157034, "latitude": 40.984141 },
+    { "longitude": 113.157034, "latitude": 40.984141 },
+    { "longitude": 113.128394, "latitude": 40.987386 },
+    { "longitude": 113.128394, "latitude": 40.987386 },
+    { "longitude": 113.128394, "latitude": 40.987386 },
+    { "longitude": 113.148196, "latitude": 40.98641 },
+    { "longitude": 113.126551, "latitude": 41.043465 },
+    { "longitude": 113.143085, "latitude": 41.030702 },
+    { "longitude": 113.143085, "latitude": 41.030702 },
+    { "longitude": 113.165045, "latitude": 41.017746 },
+  ]
+  // drawPoint(lastData)
+  function drawPoint(_data) {
+    let data = _data
+    // console.log(data.length)
+    remove_overlay()
+    for (var i = 0; i < data.length; i++) {
+      var point = new BMap.Point(data[i].longitude, data[i].latitude);
+      var marker = new BMap.Marker(point);
+      //var marker = new BMap.Marker(new BMap.Point(sw.lng + lngSpan * (Math.random()*0.7 ), ne.lat - latSpan * (Math.random())*0.7)); // 创建点
+
+      // marker.setAnimation(BMAP_ANIMATION_BOUNCE); //跳动的动画
+      map.addOverlay(marker);
+    }
+  }
+
+  let sleep = () => new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve()
+    }, 1000 * 2);
+  })
+  intervalFn()
+  async function intervalFn() {
+    let day = 15
+    let lastKey = 12
+    let allData = points
+    let size = allData.length
+    let eachNum = Math.round(size / 11)
+    let startNum = 0
+    let endNum = eachNum
+    let data = []
+    for (let i = 2; i < day; i++) {
+      await sleep()
+      document.querySelector('#time').innerHTML = `2月${i}日`
+      if (i > 13) {
+        data = lastData
+      } else {
+        data = setPointData(startNum, endNum)
+      }
+      data = data.concat(lastData)
+      startNum += eachNum
+      endNum += eachNum
+      drawPoint(data)
+      // console.log(i,data)
+    }
+    intervalFn()
+  }
+
+
+  function setPointData(start, end) {
+    let allData = points
+    let size = allData.length
+    let arr = []
+    if (end > size) {
+      end = size
+    }
+    for (let i = end; i < size; i++) {
+      const item = allData[i];
+      // console.log(item)
+      arr.push(item)
+    }
+    return arr
+  }
+
+  var polyline = new BMap.Polyline([
+    new BMap.Point(113.129682, 41.040319),
+    new BMap.Point(113.129692, 41.040329),
+    new BMap.Point(113.129680, 41.040339)
+  ], { strokeColor: "red", strokeWeight: 2, strokeOpacity: 0.5 });   //创建折线
+
+  var circle = new BMap.Circle(point, 5000, { strokeColor: "red", strokeWeight: 2, strokeOpacity: 0.1 }); //创建圆
+
+  var polygon = new BMap.Polygon([
+    new BMap.Point(113.129690, 41.040340),
+    new BMap.Point(113.129700, 41.040350),
+    new BMap.Point(113.129710, 41.040360),
+    new BMap.Point(113.129720, 41.040370),
+    new BMap.Point(113.129730, 41.040380)
+  ], { strokeColor: "red", strokeWeight: 2, strokeOpacity: 0.5 });  //创建多边形
+
+  var pStart = new BMap.Point(113.129740, 41.040390);
+  var pEnd = new BMap.Point(113.129750, 41.040400);
+  var rectangle = new BMap.Polygon([
+    new BMap.Point(pStart.lng, pStart.lat),
+    new BMap.Point(pEnd.lng, pStart.lat),
+    new BMap.Point(pEnd.lng, pEnd.lat),
+    new BMap.Point(pStart.lng, pEnd.lat)
+  ], { strokeColor: "red", strokeWeight: 2, strokeOpacity: 0.5 });  //创建矩形
+
+  //添加覆盖物
+  function add_overlay() {
+    map.addOverlay(polyline);          //增加折线
+    // map.addOverlay(circle);            //增加圆
+    map.addOverlay(polygon);           //增加多边形
+    map.addOverlay(rectangle);         //增加矩形
+  }
+  //清除覆盖物
+  function remove_overlay() {
+    map.clearOverlays();
+  }
+  // add_overlay()
+</script>
